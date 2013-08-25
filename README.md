@@ -1,4 +1,4 @@
-A tool that uses your iPhone or iPod Touch's AES engine to calculate keys/ivs for IPSW files.
+A tool for Mac that uses your iPhone or iPod Touch's AES engine to calculate keys/ivs for IPSW files.
 Written by compilingEntropy
 
 iRecovery-Entropy is based off of iRecovery by by westbaer, which is based off of iRecovery by GreySyntax. Thanks to pod2g, tom3q, planetbeing, geohot, posixninja, ih8sn0w, westbaer, and greysyntax.
