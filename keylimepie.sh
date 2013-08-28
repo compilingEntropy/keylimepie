@@ -26,7 +26,7 @@ if [[ -z "$firmware" ]]; then
 		echo "no ./firmware directory exists, please provide an ipsw next time."
 		exit
 	fi
-	if [ -e ./firmware/Restore.plist -a $( ls ./firmware | grep -c ".dmg" ) -ge 2 -a $( ls ./firmware/ | wc -l | sed 's| ||g' ) -ge 10 ]; then
+	if [ -e ./firmware/Restore.plist -a -e ./firmware/BuildManifest.plist -a $( ls ./firmware | grep -c ".dmg" ) -ge 2 -a $( ls ./firmware/ | wc -l | sed 's| ||g' ) -ge 10 ]; then
 		echo "files found, i'll do my best."
 	else
 		echo "nope, please provide an ipsw next time."
@@ -86,8 +86,26 @@ dmgfiles=( $( echo "$( cat ./Restore.plist | grep SystemRestoreImages -A 4 | gre
 #dmgfiles[1] = updatedmg
 #dmgfiles[2] = restoredmg
 
+#parse the ./Restore.plist and ./BuildManifest.plist files to find informations and store them to an array.
+#longest line of code award
+ipsw=( $( echo "$( cat ./Restore.plist | grep 'ProductVersion' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'ProductBuildVersion' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'ProductType' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' |  sed 's/[[:space:]]//g' )" "$( cat ./BuildManifest.plist | grep '<string>Erase</string>' -B 7 | grep 'BuildTrain' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'BoardConfig' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'Platform' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" ) )
+#resulting array:
+#ipsw[0] = version
+#ipsw[1] = build
+#ipsw[2] = device
+#ipsw[3] = codename
+#ipsw[4] = deviceclass
+#ipsw[5] = platform
+
+#theiphonewiki wants the device to look like 'iphone31' instead of "iPhone3,1"
+#not really sure why, but whatevs. When I support appletv, this will be different.
+ipsw[2]=$( echo "${ipsw[2]}" | sed 's|P|p|g' | sed 's|,||g' )
+
+#build an index of sorts for the above ipsw array
+ipswindex=( "version" "build" "device" "codename" )
+
 #remove all the ipsw's files and folders that we don't care about
-rm -rf $( ls | grep -v .img3 | grep -v .dfu | grep -v .dmg | grep -v kernelcache | grep -v Restore.plist )
+rm -rf $( ls | grep -v .img3 | grep -v .dfu | grep -v .dmg | grep -v kernelcache | grep -v Restore.plist | grep -v BuildManifest.plist )
 
 #the files need to be in alphabetical order when we output them at the end.
 #I used the built in lexicographical ordering in 'ls' to accomplish this.
@@ -111,8 +129,9 @@ done
 files=( $( ls ) )
 #remove the rootfs .dmg file from the array, we'll get that key a different way
 files=( ${files[@]/${dmgfiles[0]}/} )
-#remove the restore.plist file from the array, it doesn't have keys/ivs
+#remove the restore.plist and build.manifest files from the array, they doesn't have keys/ivs
 files=( ${files[@]/Restore.plist/} )
+files=( ${files[@]/BuildManifest.plist/} )
 
 cd ../
 
@@ -282,26 +301,6 @@ if [ $( echo "${keys[5]}" | grep -c "ction" ) -eq 1 -a $( cat ./output.log | gre
 	keys=( ${keys[@]:6} )
 fi
 
-#i'm sure there's a better way to do this, someday I'll clean it up
-#the file names all have garbage such as '@2x~iphone.img' at the end of them that we don't want in the wikikeys.txt file.
-#all the garbage can be found in either the devicetree or applelogo filenames.
-#here, i'm finding where those two files are in the array.
-let i=0
-for file in "${files[@]}"; do
-	if [ $( echo "$file" | grep -c devicetree ) -eq 1 ]; then
-	 	 offset1=$i
-	fi
-	if [ $( echo "$file" | grep -c applelogo ) -eq 1 ]; then
-	 	 offset2=$i
-	fi
-	((i++))
-done
-
-#strip out the part of the file we know about, save it to a variable for later
-garbage1=$( echo "${files[$offset1]}" | sed 's|devicetree||g' | sed 's|\.img3||g' )
-garbage2=$( echo "${files[$offset2]}" | sed 's|applelogo||g' | sed 's|\.img3||g' | sed 's|~iphone||g' )
-platform=$( echo "$garbage2" | sed 's|@2x\.||g' ) #we need to know the platform so we can get the rootfskey
-
 #checks to see if any keys are corrupt.
 corrupt=0
 #sometimes, all the keys are corrput. in that case, keys are duplicated and repeated throughout the output.
@@ -321,7 +320,7 @@ for (( i = 0; i < ${#files[@]}*2+1; i++ )); do
 	elif [ $corrupt -eq 2 ]; then
 		#if all keys are corrupt, replace the text for each key with 'Corrupt!'
 		keys[$i]="Corrupt!"
-	elif [ $( echo ${keys[$i]} | egrep -c ^[0-9a-f]+$ ) -ne 1 -o ${#keys[$i]} -gt 65 -o ${#keys[$i]} -lt 32 ] && [ "${keybags[$i]}" != "None" ]; then
+	elif [ $( echo ${keys[$i]} | egrep -c ^[0-9a-f]+$ ) -ne 1 -o ${#keys[$i]} -gt 65 -o ${#keys[$i]} -lt 31 ] && [ "${keybags[$i]}" != "None" ]; then
 		#if a key isn't between 32(iv) and 64(key) characters and also hexidecimal, it is corrupt
 		keys[$i]="Corrupt!"
 		if [ $corrupt -ne 2 ]; then
@@ -339,19 +338,19 @@ cleandmg=( $( echo "${dmgfiles[@]}" | sed 's|\.dmg||g' ) )
 let j=0
 for file in "${files[@]}"; do
 	if [ $( echo "$file" | grep -c ${dmgfiles[1]} ) -eq 1 ]; then
-	 	 let offset3=$j*2
+	 	 let offset1=$j*2
 	 	 break
 	fi
 	((j++))
 done
 #store the key and iv for the dmgfiles[1] to variables
-dmgiv="${keys[$offset3]}"
-dmgkey="${keys[$offset3+1]}"
+dmgiv="${keys[$offset1]}"
+dmgkey="${keys[$offset1+1]}"
 
 #find the rootfskey
 if [ "$dmgiv" != "TODO" -a "$dmgkey" != "TODO" -a "$dmgiv" != "" -a "$dmgkey" != "" -a "$dmgiv" != "Corrupt!" -a "$dmgkey" != "Corrupt!" ]; then #if the key and iv for dmgfiles[1] are valid, proceed
 	./xpwntool ./firmware/${dmgfiles[1]} ./firmware/dec.dmg -iv $dmgiv -k $dmgkey > /dev/null #cook up a decrypted .dmg file to be used with genpass
-	rootfskey=$( ./genpass $platform ./firmware/dec.dmg ./firmware/${dmgfiles[0]} | sed 's/[[:space:]]//g' | sed 's|vfdecryptkey\:||g' ) #use the dec.dmg for decrypting the rootfs, which is dmgfiles[0]
+	rootfskey=$( ./genpass ${ipsw[5]} ./firmware/dec.dmg ./firmware/${dmgfiles[0]} | sed 's/[[:space:]]//g' | sed 's|vfdecryptkey\:||g' ) #use the dec.dmg for decrypting the rootfs, which is dmgfiles[0]
 fi
 
 #delete the dec.dmg file so it doesn't get in the way, and because we no longer need it
@@ -376,6 +375,23 @@ for (( i = 0; i < ${#files[@]}; i++ )); do
 	echo "${files[$i]}:  -iv ${keys[$j]} -k ${keys[$j+1]}" | sed 's|\./||g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' >> ./output/keys.txt
 done
 
+echo "{{keys" >> ./output/wikikeys.txt
+
+#print out basic information about the ipsw, like build and version.
+for (( i = 0; i < ${#ipswindex[@]}; i++ )); do
+	let spacing=20-${#ipswindex[$i]}
+
+	info=" | ${ipswindex[$i]}"
+	for (( j = $spacing; j > 0; j-- )); do
+		info+=" "
+	done
+	info+="= ${ipsw[$i]}"
+
+	echo "$info" >> ./output/wikikeys.txt
+done
+#we don't know the downloadurl
+echo " | downloadurl         = TODO" >> ./output/wikikeys.txt
+
 #the dmg files need to be output in a static order, not a lexicographical order.
 #the order is always dmgfiles[0], dmgfiles[1], then dmgfiles[2] (almost like i planned it that way)
 #i feel like something about this for loop could be written better, but i haven't figured out a better way to do it yet
@@ -386,14 +402,14 @@ for dmgfile in "${cleandmg[@]}"; do
 		for file in "${files[@]}"; do
 			#find where in the array the file we're looking for is located
 			if [ $( echo "$file" | grep -c $dmgfile ) -eq 1 ]; then
-			 	 let offset4=$j*2
+			 	 let offset2=$j*2
 			 	 break
 			fi
 			((j++))
 		done
 		#store the key and iv for the dmgfiles[$i] to variables
-		dmgiv="${keys[$offset4]}"
-		dmgkey="${keys[$offset4+1]}"
+		dmgiv="${keys[$offset2]}"
+		dmgkey="${keys[$offset2+1]}"
 	fi
 
 	#set the dmgtype depending on which file you're looking at
@@ -431,19 +447,19 @@ for dmgfile in "${cleandmg[@]}"; do
 	filekey+="="
 
 	#output the nice and purdy dmg lines to the wikikeys.txt file
+	echo "" >> ./output/wikikeys.txt
 	echo "$filedmg $dmgfile" >> ./output/wikikeys.txt
 	if [ $i -ne 0 ]; then #the rootfs (dmgfiles[0]) doesn't have an iv
 		echo "$fileiv $dmgiv" >> ./output/wikikeys.txt
 	fi
 	echo "$filekey $dmgkey" >> ./output/wikikeys.txt
-	echo "" >> ./output/wikikeys.txt
 	((i++))
 done
 
 #WOAH UGLY
 #longest line ever, fix this someday
 #turns './ibss.n90ap.RELEASE.dfu' into 'iBSS' and stuff like that
-cleanfiles=( $( echo "${files[@]}" | sed 's|\./||g' | sed 's|\.dfu||g' | sed 's|\.dmg||g' | sed 's|\.img3||g' | sed 's|\.release||g' | sed 's|\.RELEASE||g' | sed 's|~iphone||g' | sed 's|-30pin||g' | sed "s|$garbage1||g" | sed "s|$garbage2||g" | sed 's|applelogo|AppleLogo|g' | sed 's|batterycharging|BatteryCharging|g' | sed 's|batteryfull|BatteryFull|g' | sed 's|batterylow|BatteryLow|g' | sed 's|glyphcharging|GlyphCharging|g' | sed 's|glyphplugin|GlyphPlugin|g' | sed 's|kernelcache\....|Kernelcache|g' | sed 's|recoverymode|RecoveryMode|g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' | sed 's|needservice|NeedService|g' ) )
+cleanfiles=( $( echo "${files[@]}" | sed 's|\./||g' | sed 's|\.dfu||g' | sed 's|\.dmg||g' | sed 's|\.img3||g' | sed 's|\.release||g' | sed 's|\.RELEASE||g' | sed 's|~iphone||g' | sed 's|-30pin||g' | sed 's|@2x\.||g' | sed "s|\.${ipsw[4]}||g" | sed "s|${ipsw[5]}||g" | sed 's|applelogo|AppleLogo|g' | sed 's|batterycharging|BatteryCharging|g' | sed 's|batteryfull|BatteryFull|g' | sed 's|batterylow|BatteryLow|g' | sed 's|glyphcharging|GlyphCharging|g' | sed 's|glyphplugin|GlyphPlugin|g' | sed 's|kernelcache\....|Kernelcache|g' | sed 's|recoverymode|RecoveryMode|g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' | sed 's|needservice|NeedService|g' ) )
 
 #print the results to a beautyful text file
 let j=0
@@ -464,18 +480,19 @@ for (( i = 0; i < ${#files[@]}; i++ )); do
 		filekey+="="
 
 		#the wikikeys file is oh so growgeous
+		echo "" >> ./output/wikikeys.txt
 		if [ "${keybags[$i]}" != "None" ]; then
 			let "j = $i * 2"
 			echo "$fileiv ${keys[$j]}"   >> ./output/wikikeys.txt
 			echo "$filekey ${keys[$j+1]}" >> ./output/wikikeys.txt
-			echo "" >> ./output/wikikeys.txt
 		else #in case something doesn't exist
 			echo "$fileiv None" >> ./output/wikikeys.txt
 			echo "$filekey None" >> ./output/wikikeys.txt
-			echo "" >> ./output/wikikeys.txt
 		fi
 	fi
 done
+
+echo "}}" >> ./output/wikikeys.txt
 
 #if everything didn't explode, show the results
 if [[ $corrupt -ne 2 ]]; then
@@ -483,7 +500,7 @@ if [[ $corrupt -ne 2 ]]; then
 fi
 
 #that's a lot of temporary files. make it fewer someday, or put it in a ./tmp folder or something.
-rm -rf ./iBSS* ./irecovery.log ./reboot ./setenv ./fixwhite ./aesdec ./batch ./rawkeys.txt ./gplog.txt ./output.log #./tmp
+rm -rf ./iBSS* ./irecovery.log ./reboot ./setenv ./fixwhite ./aesdec ./batch ./gplog.txt ./rawkeys.txt ./output.log #./tmp
 
 echo ""
 echo "finished!"
@@ -494,8 +511,9 @@ if [[ $corrupt -eq 1 ]]; then #some errors, warn the user
 elif [[ $corrupt -eq 2 ]]; then #everything is borked
 	echo "ERROR!"
 	echo "something went horribly wrong. try the program again on this ipsw to get those keys."
-	#if this happens >30% of the time, try changing the sleep timer on line 237ish
+	#if this happens >30% of the time, try changing the sleep timer on line 256ish
 fi
+
 #exits recovery for you if you want to
 while (true);
 do

@@ -3,4 +3,3 @@
 >Support 8900 devices, the iPhone3,2, and the iPhone3,3 
 >Remove Recboot dependency 
 >Fix the temp files situation 
->Pull information from the file name provided (device, version, build) 
