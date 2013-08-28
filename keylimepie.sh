@@ -353,7 +353,7 @@ if [ "$dmgiv" != "TODO" -a "$dmgkey" != "TODO" -a "$dmgiv" != "Corrupt!" -a "$dm
 	rootfskey=$( ./genpass ${ipsw[5]} ./firmware/dec.dmg ./firmware/${dmgfiles[0]} | sed 's/[[:space:]]//g' | sed 's|vfdecryptkey\:||g' ) #use the dec.dmg for decrypting the rootfs, which is dmgfiles[0]
 fi
 
-#delete the dec.dmg file so it doesn't get in the way, and because we no longer need it
+#delete the dec.dmg file so it doesn't get in the way, and because we no longer need it##
 if [[ -e ./firmware/dec.dmg ]]; then
 	rm -rf ./firmware/dec.dmg
 fi
@@ -453,7 +453,7 @@ for dmgfile in "${cleandmg[@]}"; do
 		echo "$fileiv $dmgiv" >> ./output/wikikeys.txt
 	fi
 	echo "$filekey $dmgkey" >> ./output/wikikeys.txt
-	
+
 	((i++))
 done
 
