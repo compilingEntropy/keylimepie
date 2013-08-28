@@ -4,7 +4,7 @@ Written by compilingEntropy
 iRecovery-Entropy is based off of iRecovery by by westbaer, which is based off of iRecovery by GreySyntax. Thanks to pod2g, tom3q, planetbeing, geohot, posixninja, ih8sn0w, westbaer, and greysyntax. 
 7zip is an open source project that can be found on http://7-zip.org. 
 Recboot is an open source project by coredevteam that can be found on https://code.google.com/p/coredevteam/wiki/RecBoot. 
-Genpass is used to generate vfdecrypt passwords, and was made by p0sixninja. It can be found on his github, https://github.com/posixninja/genpass. 
+Genpass is used to generate rootfs keys (formerly known as vfdecrypt passwords), and was made by p0sixninja. It can be found on his github, https://github.com/posixninja/genpass. 
 xpwntool is part of XPwn, which is a command line implementation of PwnageTool that is being maintained by planetbeing. It can be found on his github, https://github.com/planetbeing/xpwn. 
 Email compilingEntropy@gmail.com or tweet @compiledEntropy for support, feedback, or bugs. 
 

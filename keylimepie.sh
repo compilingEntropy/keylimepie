@@ -315,7 +315,7 @@ done
 #sometimes only one key is corrupt. in this case, all other keys could still be valid.
 for (( i = 0; i < ${#files[@]}*2+1; i++ )); do
 	if [[ -z "${keys[$i]}" ]]; then
-		#if something went wrong (such as a keybag being 'none') and a key is empty, set it as 'TODO'
+		#if something went wrong and a key is empty, set it as 'TODO'
 		keys[$i]="TODO"
 	elif [ $corrupt -eq 2 ]; then
 		#if all keys are corrupt, replace the text for each key with 'Corrupt!'
@@ -348,7 +348,7 @@ dmgiv="${keys[$offset1]}"
 dmgkey="${keys[$offset1+1]}"
 
 #find the rootfskey
-if [ "$dmgiv" != "TODO" -a "$dmgkey" != "TODO" -a "$dmgiv" != "" -a "$dmgkey" != "" -a "$dmgiv" != "Corrupt!" -a "$dmgkey" != "Corrupt!" ]; then #if the key and iv for dmgfiles[1] are valid, proceed
+if [ "$dmgiv" != "TODO" -a "$dmgkey" != "TODO" -a "$dmgiv" != "Corrupt!" -a "$dmgkey" != "Corrupt!" ]; then #if the key and iv for dmgfiles[1] are valid, proceed
 	./xpwntool ./firmware/${dmgfiles[1]} ./firmware/dec.dmg -iv $dmgiv -k $dmgkey > /dev/null #cook up a decrypted .dmg file to be used with genpass
 	rootfskey=$( ./genpass ${ipsw[5]} ./firmware/dec.dmg ./firmware/${dmgfiles[0]} | sed 's/[[:space:]]//g' | sed 's|vfdecryptkey\:||g' ) #use the dec.dmg for decrypting the rootfs, which is dmgfiles[0]
 fi
@@ -453,6 +453,7 @@ for dmgfile in "${cleandmg[@]}"; do
 		echo "$fileiv $dmgiv" >> ./output/wikikeys.txt
 	fi
 	echo "$filekey $dmgkey" >> ./output/wikikeys.txt
+	
 	((i++))
 done
 
