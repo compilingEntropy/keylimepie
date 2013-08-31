@@ -253,7 +253,7 @@ sleep 0.5
 kill $( pgrep greenpois0n ) #death
 echo "killed. >:D" #tell people we're killing stuff so they don't freak out when they see terminator stuff on their terminal
 ################
-sleep 3			#this. change it if you have timing issues (i couldn't tell you what to change it to, though; 3 works for me in my tests)
+sleep 2		#this. change it if you have timing issues (i couldn't tell you what to change it to, though; 3 works for me in my tests)
 ################
 
 #set up the ./aesdec payload
@@ -306,7 +306,7 @@ corrupt=0
 #sometimes, all the keys are corrput. in that case, keys are duplicated and repeated throughout the output.
 #if any keys are repeated, keys[10] or keys[11] will also be repeated.
 #most commonly, the keys will be repeated every 6 places, so keys[10] would be the same as keys[16]
-#this checks for that, as well as any other duplications.
+#check that first, then check for any other duplications.
 for (( i = 0; i < ${#keys[@]}; i++ )); do
 	if [ "${keys[10]}" == "${keys[16]}" -o "${keys[11]}" == "${keys[17]}" -o "${keys[10]}" == "${keys[$i]}" -o "${keys[11]}" == "${keys[$i]}" ] && [ $i -ne 10 -a $i -ne 11 ]; then
 	 	corrupt=2 #all keys are corrupt, none are valid
