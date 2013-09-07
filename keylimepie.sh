@@ -2,12 +2,14 @@
 
 #Written by compilingEntropy
 #Email compilingEntropy@gmail.com or tweet @compiledEntropy for support, feedback, or bugs
-#usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw"
+#usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]"
 #supported devices: iPhone1,2; iPhone2,1; iPhone3,1; iPod2,1; iPod3,1; iPod 4,1
 #supported firmware: tested on most firmwares between 4.0 and 7.0b6, if you test on firmware outside this window, please report your findings
 
 cd $(pwd)
 firmware=$1
+time=$2
+usage="usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]"
 
 #forces run as root, always. root is required for setting up libraries but I'm pretty sure that's the only reason you need it.
 if [[ $(whoami) != root ]]; then
@@ -15,11 +17,38 @@ if [[ $(whoami) != root ]]; then
 	exit
 fi
 
+#default time is 2, that's what's works for me.
+if [[ $time == "" ]]; then
+	time=2
+fi
+
+#check to see if the time provided is correct, asks for new time if it isn't
+if [ $( echo $time | egrep -c "^([-][t]+[0-9][0-9]*)$" ) -ne 1 -a $2 != "" ]; then
+	echo "$time is not a supplorted parameter."
+	echo "you can supply a sleep time like this '-t3'."
+	echo "$usage"
+	exit
+elif [ $( echo $time | sed 's|-t||g' ) -ge 15 ]; then
+	echo "using sleep times longer than 15 is guaranteed to fail."
+	echo "I recommend using 1, 2, 3, or 4."
+	while ( [[ $( echo $time | egrep -c "^[0-9]{1,2}$" ) -ne 1 || $time -ge 15 ]] )
+	do
+		echo "enter new sleep time:"
+		read time
+		if [ $( echo $time | egrep -c "^[0-9]+$" ) -ne 1 ]; then
+			echo "invalid format, just enter a number like '3'."
+		elif [ $time -ge 15 ]; then
+			echo "choose a number less than 15. I recommend using 1, 2, 3, or 4."
+		fi
+	done
+	echo "valid sleep time given, continuing..."
+fi
+
 #checks to see if you've given an ipsw file.
 #if you have, extract it and use it.
 #if not, it tries to use what's in the ./firmware folder.
 if [[ -z "$firmware" ]]; then
-	echo "no IPSW provided! usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw"
+	echo "$usage"
 	echo -n "checking to see if whatever's in the ./firmware/ folder can be used..."
 	if [[ ! -d ./firmware/ ]]; then
 		echo ""
@@ -35,7 +64,7 @@ if [[ -z "$firmware" ]]; then
 elif [[ -n "$firmware" ]]; then
 	if [[ $( echo $firmware | grep -c .ipsw ) -ne 1 ]]; then
 		echo "the supplied parameter was not an .ipsw file! please supply a valid .ipsw file."
-		echo "usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw"
+		echo "$usage"
 		exit
 	fi
 	if [[ -d ./firmware/ ]]; then
@@ -45,9 +74,22 @@ elif [[ -n "$firmware" ]]; then
 			echo "done."
 		fi
 	fi
+	#count the number of useful files inside the ipsw
+	let precount=$( ./7za l $firmware | grep -c "\.dfu" )+$( ./7za l $firmware | grep -c "\.img3" )+$( ./7za l $firmware | grep -c "\.dmg" )+$( ./7za l $firmware | grep -c "kernelcache" )+$( ./7za l $firmware | grep -c 'Restore\.plist' )+$( ./7za l $firmware | grep -c "BuildManifest\.plist" )
+	#check the ipsw for a restore.plist, at least 2 ramdisks, and more than 10 useful files overall
+	if [ $( ./7za l $firmware | grep -c "Restore.plist" ) -ne 1 -a $( ./7za l $firmware | grep -c ".dmg" ) -lt 2 -a $precount -le 10 ]; then
+		echo "this ipsw isn't supported, please contact me and tell me what you're using so I can support it."
+		echo "I'm on twitter @compiledEntropy."
+		exit
+	fi
 	echo "extracting files..."
 	./7za e $firmware -o"./firmware"
-	if [ -e ./firmware/Restore.plist -a $( ls ./firmware | grep -c ".dmg" ) -ge 2 -a $( ls ./firmware/ | wc -l | sed 's| ||g' ) -ge 10 ]; then
+	#make the ./firmware/ folder world read/write/execute
+	chmod 777 ./firmware/
+	#count the number of useful files extracted
+	let postcount=$( ls ./firmware | grep -c "\.dfu" )+$( ls ./firmware | grep -c "\.img3" )+$( ls ./firmware | grep -c "\.dmg" )+$( ls ./firmware | grep -c "kernelcache" )+$( ls ./firmware | grep -c "Restore\.plist" )+$( ls ./firmware | grep -c "BuildManifest\.plist" )
+	#if they aren't the same, bail
+	if [ $postcount -eq $precount ]; then
 		echo "extracted successfully!"
 	else
 		echo "something went wrong with the extracting process, please try again."
@@ -70,9 +112,6 @@ fi
 if [[ ! -e /usr/local/lib/libusb-1.0.0.dylib ]]; then
 	cp ./libusb-1.0.0.dylib /usr/local/lib/
 fi
-
-#make the ./firmware/ folder world read/write/execute
-chmod 777 ./firmware/
 
 echo -n "grabbing keybags..."
 
@@ -253,7 +292,7 @@ sleep 0.5
 kill $( pgrep greenpois0n ) #death
 echo "killed. >:D" #tell people we're killing stuff so they don't freak out when they see terminator stuff on their terminal
 ################
-sleep 2		#this. change it if you have timing issues (i couldn't tell you what to change it to, though; 3 works for me in my tests)
+sleep $time		#this is what you change if something goes horribly wrong. the default is 2, you can change it with -t. use -t3 to change it to 3, for example.
 ################
 
 #set up the ./aesdec payload
@@ -512,7 +551,9 @@ if [[ $corrupt -eq 1 ]]; then #some errors, warn the user
 elif [[ $corrupt -eq 2 ]]; then #everything is borked
 	echo "ERROR!"
 	echo "something went horribly wrong. try the program again on this ipsw to get those keys."
-	#if this happens >30% of the time, try changing the sleep timer on line 256ish
+	echo "if this happens often, try changing the sleep timer with the -t flag."
+	echo "do 'sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw -t3' to change it to 3, for example."
+	#if this happens >30% of the time, try changing the sleep timer with the -t flag. do -t3 to change it to 3, for example.
 fi
 
 #exits recovery for you if you want to
