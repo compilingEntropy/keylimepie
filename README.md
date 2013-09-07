@@ -8,7 +8,7 @@ Genpass is used to generate rootfs keys (formerly known as vfdecrypt passwords),
 xpwntool is part of XPwn, which is a command line implementation of PwnageTool that is being maintained by planetbeing. It can be found on his github, https://github.com/planetbeing/xpwn. 
 Email compilingEntropy@gmail.com or tweet @compiledEntropy for support, feedback, or bugs. 
 
-usage: sudo ./keylimepie.sh /Users/user/Downloads/iPod4,1_6.1.3_10B329_Restore.ipsw
+usage: sudo ./keylimepie.sh /Users/user/Downloads/iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]
 
 supported devices: iPhone1,2; iPhone2,1; iPhone3,1; iPod2,1; iPod3,1; iPod 4,1 
 
