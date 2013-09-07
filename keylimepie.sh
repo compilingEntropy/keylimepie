@@ -2,7 +2,7 @@
 
 #Written by compilingEntropy
 #Email compilingEntropy@gmail.com or tweet @compiledEntropy for support, feedback, or bugs
-#usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]"
+#usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]
 #supported devices: iPhone1,2; iPhone2,1; iPhone3,1; iPod2,1; iPod3,1; iPod 4,1
 #supported firmware: tested on most firmwares between 4.0 and 7.0b6, if you test on firmware outside this window, please report your findings
 
@@ -11,19 +11,13 @@ firmware=$1
 time=$2
 usage="usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]"
 
-#forces run as root, always. root is required for setting up libraries but I'm pretty sure that's the only reason you need it.
-if [[ $(whoami) != root ]]; then
-	echo "run as root!"
-	exit
-fi
-
 #default time is 2, that's what's works for me.
 if [[ $time == "" ]]; then
 	time=2
 fi
 
-#check to see if the time provided is correct, asks for new time if it isn't
-if [ $( echo $time | egrep -c "^([-][t]+[0-9][0-9]*)$" ) -ne 1 -a $2 != "" ]; then
+#check to see if the time provided is valid, asks for new time if it isn't
+if [ $( echo $time | egrep -c "^([-][t]+[0-9][0-9]*)$" ) -ne 1 -a "$2" != "" ]; then
 	echo "$time is not a supplorted parameter."
 	echo "you can supply a sleep time like this '-t3'."
 	echo "$usage"
@@ -84,8 +78,6 @@ elif [[ -n "$firmware" ]]; then
 	fi
 	echo "extracting files..."
 	./7za e $firmware -o"./firmware"
-	#make the ./firmware/ folder world read/write/execute
-	chmod 777 ./firmware/
 	#count the number of useful files extracted
 	let postcount=$( ls ./firmware | grep -c "\.dfu" )+$( ls ./firmware | grep -c "\.img3" )+$( ls ./firmware | grep -c "\.dmg" )+$( ls ./firmware | grep -c "kernelcache" )+$( ls ./firmware | grep -c "Restore\.plist" )+$( ls ./firmware | grep -c "BuildManifest\.plist" )
 	#if they aren't the same, bail
@@ -102,15 +94,20 @@ if [[ ! -d ./output/ ]]; then
 	mkdir ./output/
 fi
 
+#warn user that root will be required
+if [ ! -d /usr/local/lib/ -o ! -e /usr/local/lib/libusb-1.0.dylib -o ! -e /usr/local/lib/libusb-1.0.0.dylib ]; then
+	echo "setting up libraries (this only happens once), please enter your password."
+fi
+
 #set up the library that irecovery needs
 if [[ ! -d /usr/local/lib/ ]]; then
-	mkdir /usr/local/lib/
+	sudo mkdir /usr/local/lib/
 fi
 if [[ ! -e /usr/local/lib/libusb-1.0.dylib ]]; then
-	cp ./libusb-1.0.dylib /usr/local/lib/
+	sudo cp ./libusb-1.0.dylib /usr/local/lib/
 fi
 if [[ ! -e /usr/local/lib/libusb-1.0.0.dylib ]]; then
-	cp ./libusb-1.0.0.dylib /usr/local/lib/
+	sudo cp ./libusb-1.0.0.dylib /usr/local/lib/
 fi
 
 echo -n "grabbing keybags..."
@@ -552,7 +549,7 @@ elif [[ $corrupt -eq 2 ]]; then #everything is borked
 	echo "ERROR!"
 	echo "something went horribly wrong. try the program again on this ipsw to get those keys."
 	echo "if this happens often, try changing the sleep timer with the -t flag."
-	echo "do 'sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw -t3' to change it to 3, for example."
+	echo "do '$usage' to change it to 3, for example." | sed 's|\[||g' | sed 's|\]||g' | sed 's|usage: ||g'
 	#if this happens >30% of the time, try changing the sleep timer with the -t flag. do -t3 to change it to 3, for example.
 fi
 
