@@ -112,7 +112,7 @@ fi
 
 echo -n "grabbing keybags..."
 
-cd ./firmware
+cd ./firmware/
 
 #parse the ./restore.plist file to find out which .dmg file is which, and store them to an array.
 #I'm sure this line could be optimized.
@@ -496,7 +496,7 @@ done
 #WOAH UGLY
 #longest line ever, fix this someday
 #turns './ibss.n90ap.RELEASE.dfu' into 'iBSS' and stuff like that
-cleanfiles=( $( echo "${files[@]}" | sed 's|\./||g' | sed 's|\.dfu||g' | sed 's|\.dmg||g' | sed 's|\.img3||g' | sed 's|\.release||g' | sed 's|\.RELEASE||g' | sed 's|~iphone||g' | sed 's|-30pin||g' | sed 's|@2x\.||g' | sed 's|\.${ipsw[4]}||g' | sed 's|${ipsw[5]}||g' | sed 's|applelogo|AppleLogo|g' | sed 's|batterycharging|BatteryCharging|g' | sed 's|batteryfull|BatteryFull|g' | sed 's|batterylow|BatteryLow|g' | sed 's|glyphcharging|GlyphCharging|g' | sed 's|glyphplugin|GlyphPlugin|g' | sed 's|kernelcache\....|Kernelcache|g' | sed 's|recoverymode|RecoveryMode|g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' | sed 's|needservice|NeedService|g' ) )
+cleanfiles=( $( echo "${files[@]}" | sed 's|\./||g' | sed 's|\.dfu||g' | sed 's|\.dmg||g' | sed 's|\.img3||g' | sed 's|\.release||g' | sed 's|\.RELEASE||g' | sed 's|~iphone||g' | sed 's|-30pin||g' | sed 's|@2x\.||g' | sed "s|\.${ipsw[4]}||g" | "sed s|${ipsw[5]}||g" | sed 's|applelogo|AppleLogo|g' | sed 's|batterycharging|BatteryCharging|g' | sed 's|batteryfull|BatteryFull|g' | sed 's|batterylow|BatteryLow|g' | sed 's|glyphcharging|GlyphCharging|g' | sed 's|glyphplugin|GlyphPlugin|g' | sed 's|kernelcache\....|Kernelcache|g' | sed 's|recoverymode|RecoveryMode|g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' | sed 's|needservice|NeedService|g' ) )
 
 #print the results to a beautyful text file
 let j=0
