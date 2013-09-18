@@ -4,7 +4,7 @@
 #Email compilingEntropy@gmail.com or tweet @compiledEntropy for support, feedback, or bugs
 #usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]
 #supported devices: iPhone1,2; iPhone2,1; iPhone3,1; iPod2,1; iPod3,1; iPod 4,1
-#supported firmware: tested on most firmwares between 4.0 and 7.0b6, if you test on firmware outside this window, please report your findings
+#supported firmware: tested on most firmwares between 4.0 and 7.0, if you test on firmware outside this window, please report your findings
 
 cd $(pwd)
 firmware=$1
@@ -124,7 +124,7 @@ dmgfiles=( $( echo "$( cat ./Restore.plist | grep SystemRestoreImages -A 4 | gre
 
 #parse the ./Restore.plist and ./BuildManifest.plist files to find informations and store them to an array.
 #longest line of code award
-ipsw=( $( echo "$( cat ./Restore.plist | grep 'ProductVersion' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'ProductBuildVersion' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'ProductType' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' |  sed 's/[[:space:]]//g' )" "$( cat ./BuildManifest.plist | grep '<string>Erase</string>' -B 7 | grep 'BuildTrain' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'BoardConfig' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'Platform' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" ) )
+ipsw=( $( echo "$( cat ./Restore.plist | grep 'ProductVersion' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'ProductBuildVersion' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'ProductType' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' |  sed 's/[[:space:]]//g' )" "$( cat ./BuildManifest.plist | grep '<string>Erase</string>' -B 9 | grep 'BuildTrain' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'BoardConfig' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'Platform' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" ) )
 #resulting array:
 #ipsw[0] = version
 #ipsw[1] = build
@@ -496,7 +496,7 @@ done
 #WOAH UGLY
 #longest line ever, fix this someday
 #turns './ibss.n90ap.RELEASE.dfu' into 'iBSS' and stuff like that
-cleanfiles=( $( echo "${files[@]}" | sed 's|\./||g' | sed 's|\.dfu||g' | sed 's|\.dmg||g' | sed 's|\.img3||g' | sed 's|\.release||g' | sed 's|\.RELEASE||g' | sed 's|~iphone||g' | sed 's|-30pin||g' | sed 's|@2x\.||g' | sed "s|\.${ipsw[4]}||g" | "sed s|${ipsw[5]}||g" | sed 's|applelogo|AppleLogo|g' | sed 's|batterycharging|BatteryCharging|g' | sed 's|batteryfull|BatteryFull|g' | sed 's|batterylow|BatteryLow|g' | sed 's|glyphcharging|GlyphCharging|g' | sed 's|glyphplugin|GlyphPlugin|g' | sed 's|kernelcache\....|Kernelcache|g' | sed 's|recoverymode|RecoveryMode|g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' | sed 's|needservice|NeedService|g' ) )
+cleanfiles=( $( echo "${files[@]}" | sed 's|\./||g' | sed 's|\.dfu||g' | sed 's|\.dmg||g' | sed 's|\.img3||g' | sed 's|\.release||g' | sed 's|\.RELEASE||g' | sed 's|~iphone||g' | sed 's|-30pin||g' | sed 's|@2x\.||g' | sed "s|\.${ipsw[4]}||g" | sed "s|${ipsw[5]}||g" | sed 's|applelogo|AppleLogo|g' | sed 's|batterycharging|BatteryCharging|g' | sed 's|batteryfull|BatteryFull|g' | sed 's|batterylow|BatteryLow|g' | sed 's|glyphcharging|GlyphCharging|g' | sed 's|glyphplugin|GlyphPlugin|g' | sed 's|kernelcache\....|Kernelcache|g' | sed 's|recoverymode|RecoveryMode|g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' | sed 's|needservice|NeedService|g' ) )
 
 #print the results to a beautyful text file
 let j=0
