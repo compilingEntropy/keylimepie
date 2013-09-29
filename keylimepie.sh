@@ -131,7 +131,7 @@ ipsw=( $( echo "$( cat ./Restore.plist | grep 'ProductVersion' -A 1 | grep 'stri
 #ipsw[2] = device
 #ipsw[3] = codename
 #ipsw[4] = deviceclass
-#ipsw[5] = platform
+#ipsw[5] = platform 
 
 #get the download url using seejy's api
 url=$( curl -s -A "keylimepie" http://api.ios.icj.me/v2/${ipsw[2]}/${ipsw[1]}/url )
