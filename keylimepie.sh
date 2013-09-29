@@ -133,6 +133,14 @@ ipsw=( $( echo "$( cat ./Restore.plist | grep 'ProductVersion' -A 1 | grep 'stri
 #ipsw[4] = deviceclass
 #ipsw[5] = platform
 
+#get the download url using seejy's api
+url=$( curl -A "keylimepie" http://api.ios.icj.me/v2/${ipsw[2]}/${ipsw[1]}/url )
+if [[ -z $url ]]; then
+	echo "couldn't find IPSW download url!"
+	echo "this is probably a beta IPSW, continuing..."
+	url="TODO"
+fi
+
 #theiphonewiki wants the device to look like 'iphone31' instead of "iPhone3,1"
 #not really sure why, but whatevs. When I support appletv, this will be different.
 ipsw[2]=$( echo "${ipsw[2]}" | sed 's|P|p|g' | sed 's|,||g' )
@@ -425,8 +433,8 @@ for (( i = 0; i < ${#ipswindex[@]}; i++ )); do
 
 	echo "$info" >> ./output/wikikeys.txt
 done
-#we don't know the downloadurl
-echo " | downloadurl         = TODO" >> ./output/wikikeys.txt
+#give the download url according to seejy's api
+echo " | downloadurl         = $url" >> ./output/wikikeys.txt
 
 #the dmg files need to be output in a static order, not a lexicographical order.
 #the order is always dmgfiles[0], dmgfiles[1], then dmgfiles[2] (almost like i planned it that way)
