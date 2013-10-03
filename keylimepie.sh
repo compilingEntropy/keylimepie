@@ -2,14 +2,14 @@
 
 #Written by compilingEntropy
 #Email compilingEntropy@gmail.com or tweet @compiledEntropy for support, feedback, or bugs
-#usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]
-#supported devices: iPhone1,2; iPhone2,1; iPhone3,1; iPod2,1; iPod3,1; iPod 4,1
-#supported firmware: tested on most firmwares between 4.0 and 7.0, if you test on firmware outside this window, please report your findings
+#usage: ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]
+#supported devices: iPhone2,1; iPhone3,1; iPod2,1; iPod3,1; iPod 4,1
+#supported firmware: tested on most firmwares between 3.0 and 7.0.2; if you test on firmware outside this window, please report your findings
 
 cd $(pwd)
 firmware=$1
 time=$2
-usage="usage: sudo ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]"
+usage="usage: ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]"
 
 #default time is 2, that's what's works for me.
 if [[ $time == "" ]]; then
@@ -101,7 +101,7 @@ fi
 
 #set up the library that irecovery needs
 if [[ ! -d /usr/local/lib/ ]]; then
-	sudo mkdir /usr/local/lib/
+	sudo mkdir -p /usr/local/lib/
 fi
 if [[ ! -e /usr/local/lib/libusb-1.0.dylib ]]; then
 	sudo cp ./libusb-1.0.dylib /usr/local/lib/
@@ -131,7 +131,10 @@ ipsw=( $( echo "$( cat ./Restore.plist | grep 'ProductVersion' -A 1 | grep 'stri
 #ipsw[2] = device
 #ipsw[3] = codename
 #ipsw[4] = deviceclass
-#ipsw[5] = platform 
+#ipsw[5] = platform
+
+#get deviceclass prefix by removing 'ap'
+classprefix=$( echo "${ipsw[4]}" | sed 's|ap||g' )
 
 #get the download url using seejy's api
 url=$( curl -s -A "keylimepie" http://api.ios.icj.me/v2/${ipsw[2]}/${ipsw[1]}/url )
@@ -504,7 +507,7 @@ done
 #WOAH UGLY
 #longest line ever, fix this someday
 #turns './ibss.n90ap.RELEASE.dfu' into 'iBSS' and stuff like that
-cleanfiles=( $( echo "${files[@]}" | sed 's|\./||g' | sed 's|\.dfu||g' | sed 's|\.dmg||g' | sed 's|\.img3||g' | sed 's|\.release||g' | sed 's|\.RELEASE||g' | sed 's|~iphone||g' | sed 's|-30pin||g' | sed 's|@2x\.||g' | sed "s|\.${ipsw[4]}||g" | sed "s|${ipsw[5]}||g" | sed 's|applelogo|AppleLogo|g' | sed 's|batterycharging|BatteryCharging|g' | sed 's|batteryfull|BatteryFull|g' | sed 's|batterylow|BatteryLow|g' | sed 's|glyphcharging|GlyphCharging|g' | sed 's|glyphplugin|GlyphPlugin|g' | sed 's|kernelcache\....|Kernelcache|g' | sed 's|recoverymode|RecoveryMode|g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' | sed 's|needservice|NeedService|g' ) )
+cleanfiles=( $( echo "${files[@]}" | sed 's|\./||g' | sed 's|\.dfu||g' | sed 's|\.dmg||g' | sed 's|\.img3||g' | sed 's|\.release||g' | sed 's|\.RELEASE||g' | sed 's|~iphone||g' | sed 's|-30pin||g' | sed 's|@2x\.||g' | sed "s|\.${ipsw[4]}||g" | sed "s|${ipsw[5]}||g" | sed 's|applelogo|AppleLogo|g' | sed 's|batterycharging|BatteryCharging|g' | sed 's|batteryfull|BatteryFull|g' | sed 's|batterylow|BatteryLow|g' | sed 's|glyphcharging|GlyphCharging|g' | sed 's|glyphplugin|GlyphPlugin|g' | sed 's|kernelcache\.|Kernelcache|g' | sed "s|$classprefix||g" | sed 's|recoverymode|RecoveryMode|g' | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' | sed 's|needservice|NeedService|g' | sed 's|\.||g' ) )
 
 #print the results to a beautyful text file
 let j=0
