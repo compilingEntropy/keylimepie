@@ -468,33 +468,32 @@ for dmgfile in "${cleandmg[@]}"; do
 
 	#set the dmgtype depending on which file you're looking at
 	if [[ $i -eq 0 ]]; then
-		dmgtype="rootfs"
+		dmgtype="RootFS"
 		dmgkey="$rootfskey"
 	elif [[ $i -eq 1 ]]; then
-		dmgtype="update"
+		dmgtype="UpdateRamdisk"
 	elif [[ $i -eq 2 ]]; then
-		dmgtype="restore"
+		dmgtype="RestoreRamdisk"
 	fi
 	
 	#in order to make the spacing nice and even, do 17-$numberofcharactersinarrayelement and print that many spaces
 	let spacing=17-${#dmgtype}
 
 	filedmg=" | $dmgtype"
-	filedmg+="dmg"
-	for (( k = $spacing; k > 0; k-- )); do
+	for (( k = $spacing; k >= 0; k-- )); do
 		filedmg+=" "
 	done
-	filedmg+="="
+	filedmg+="  ="
 	
 	fileiv=" | $dmgtype"
-	fileiv+="iv"
+	fileiv+="IV"
 	for (( k = $spacing; k >= 0; k-- )); do #use >= because 'iv' has one fewer character than 'key' or 'dmg'
 		fileiv+=" "
 	done
 	fileiv+="="
 	
 	filekey=" | $dmgtype"
-	filekey+="key"
+	filekey+="Key"
 	for (( k = $spacing; k > 0; k-- )); do
 		filekey+=" "
 	done
