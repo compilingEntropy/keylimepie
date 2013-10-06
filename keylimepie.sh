@@ -97,17 +97,24 @@ fi
 #warn user that root will be required
 if [ ! -d /usr/local/lib/ -o ! -e /usr/local/lib/libusb-1.0.dylib -o ! -e /usr/local/lib/libusb-1.0.0.dylib ]; then
 	echo "setting up libraries (this only happens once), please enter your password."
-fi
 
-#set up the library that irecovery needs
-if [[ ! -d /usr/local/lib/ ]]; then
-	sudo mkdir -p /usr/local/lib/
-fi
-if [[ ! -e /usr/local/lib/libusb-1.0.dylib ]]; then
-	sudo cp ./libusb-1.0.dylib /usr/local/lib/
-fi
-if [[ ! -e /usr/local/lib/libusb-1.0.0.dylib ]]; then
-	sudo cp ./libusb-1.0.0.dylib /usr/local/lib/
+	#set up the library that irecovery needs
+	if [[ ! -d /usr/local/lib/ ]]; then
+		sudo mkdir -p /usr/local/lib/
+	fi
+	if [[ ! -e /usr/local/lib/libusb-1.0.dylib ]]; then
+		sudo cp ./libusb-1.0.dylib /usr/local/lib/
+	fi
+	if [[ ! -e /usr/local/lib/libusb-1.0.0.dylib ]]; then
+		sudo cp ./libusb-1.0.0.dylib /usr/local/lib/
+	fi
+
+	#check for success
+	if [ ! -d /usr/local/lib/ -o ! -e /usr/local/lib/libusb-1.0.dylib -o ! -e /usr/local/lib/libusb-1.0.0.dylib ]; then
+		echo "setting up libraries failed, make sure your username is in the sudoers file."
+		exit
+	fi
+
 fi
 
 echo -n "grabbing keybags..."
@@ -149,7 +156,7 @@ fi
 ipsw[2]=$( echo "${ipsw[2]}" | sed 's|P|p|g' | sed 's|,||g' )
 
 #build an index of sorts for the above ipsw array
-ipswindex=( "version" "build" "device" "codename" )
+ipswindex=( "Version" "Build" "Device" "Codename" )
 
 #remove all the ipsw's files and folders that we don't care about
 rm -rf $( ls | grep -v .img3 | grep -v .dfu | grep -v .dmg | grep -v kernelcache | grep -v Restore.plist | grep -v BuildManifest.plist )
@@ -437,7 +444,7 @@ for (( i = 0; i < ${#ipswindex[@]}; i++ )); do
 	echo "$info" >> ./output/wikikeys.txt
 done
 #give the download url according to seejy's api
-echo " | downloadurl         = $url" >> ./output/wikikeys.txt
+echo " | DownloadURL         = $url" >> ./output/wikikeys.txt
 
 #the dmg files need to be output in a static order, not a lexicographical order.
 #the order is always dmgfiles[0], dmgfiles[1], then dmgfiles[2] (almost like i planned it that way)
@@ -527,8 +534,15 @@ for (( i = 0; i < ${#files[@]}; i++ )); do
 		done
 		filekey+="="
 
+		filename=" | ${cleanfiles[$i]}"
+		for (( k = $spacing; k >= 0; k-- )); do
+			filename+=" "
+		done
+		filename+="  ="
+
 		#the wikikeys file is oh so growgeous
 		echo "" >> ./output/wikikeys.txt
+		echo "$filename ${files[$i]}" >> ./output/wikikeys.txt
 		if [ "${keybags[$i]}" != "None" ]; then
 			let "j = $i * 2"
 			echo "$fileiv ${keys[$j]}"   >> ./output/wikikeys.txt
