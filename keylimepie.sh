@@ -541,7 +541,7 @@ for (( i = 0; i < ${#files[@]}; i++ )); do
 
 		#the wikikeys file is oh so growgeous
 		echo "" >> ./output/wikikeys.txt
-		echo "$filename ${files[$i]}" >> ./output/wikikeys.txt
+		echo "$filename ${files[$i]}" | sed 's|ibss|iBSS|g' | sed 's|ibec|iBEC|g' | sed 's|iboot|iBoot|g' | sed 's|devicetree|DeviceTree|g' | sed 's|llb|LLB|g' >> ./output/wikikeys.txt
 		if [ "${keybags[$i]}" != "None" ]; then
 			let "j = $i * 2"
 			echo "$fileiv ${keys[$j]}"   >> ./output/wikikeys.txt
