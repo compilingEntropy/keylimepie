@@ -4,7 +4,8 @@
 #Email compilingEntropy@gmail.com or tweet @compiledEntropy for support, feedback, or bugs
 #usage: ./keylimepie.sh ./iPod4,1_6.1.3_10B329_Restore.ipsw [-t3]
 #supported devices: iPhone2,1; iPhone3,1; iPod2,1; iPod3,1; iPod 4,1
-#supported firmware: tested on most firmwares between 3.0 and 7.0.2; if you test on firmware outside this window, please report your findings
+#supported firmware: tested on most firmwares between 3.0 and 7.1b5; if you test on firmware outside this window, please report your findings
+#PS, sorry if this code makes your eyes bleed. It makes mine bleed, too.
 
 cd $(pwd)
 firmware=$1
@@ -132,6 +133,7 @@ dmgfiles=( $( echo "$( cat ./Restore.plist | grep SystemRestoreImages -A 4 | gre
 #parse the ./Restore.plist and ./BuildManifest.plist files to find informations and store them to an array.
 #longest line of code award
 ipsw=( $( echo "$( cat ./Restore.plist | grep 'ProductVersion' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'ProductBuildVersion' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'ProductType' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' |  sed 's/[[:space:]]//g' )" "$( cat ./BuildManifest.plist | grep '<string>Erase</string>' -B 9 | grep 'BuildTrain' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'BoardConfig' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" "$( cat ./Restore.plist | grep 'Platform' -A 1 | grep 'string' | sed 's|<string>||g' | sed 's|</string>||g' | sed 's/[[:space:]]//g' )" ) )
+ipsw[6]=$( grep -m 1 "\.bbfw" "./BuildManifest.plist" | egrep -o "(0?[0-9]\.[0-9]{2}\.[0-9]{2})" )
 #resulting array:
 #ipsw[0] = version
 #ipsw[1] = build
@@ -139,6 +141,7 @@ ipsw=( $( echo "$( cat ./Restore.plist | grep 'ProductVersion' -A 1 | grep 'stri
 #ipsw[3] = codename
 #ipsw[4] = deviceclass
 #ipsw[5] = platform
+#ipsw[6] = baseband
 
 #get deviceclass prefix by removing 'ap'
 classprefix=$( echo "${ipsw[4]}" | sed 's|ap||g' )
@@ -443,6 +446,12 @@ for (( i = 0; i < ${#ipswindex[@]}; i++ )); do
 
 	echo "$info" >> ./output/wikikeys.txt
 done
+
+#check if there's a baseband, print it if there is
+if [[ -n "$ipsw[6]" ]]; then
+	echo " | Baseband            = ${ipsw[6]}" >> ./output/wikikeys.txt
+fi
+
 #give the download url according to seejy's api
 echo " | DownloadURL         = $url" >> ./output/wikikeys.txt
 

@@ -12,4 +12,4 @@ usage: ./keylimepie.sh /Users/user/Downloads/iPod4,1_6.1.3_10B329_Restore.ipsw [
 
 supported devices: iPhone2,1; iPhone3,1; iPod2,1; iPod3,1; iPod 4,1 
 
-supported firmware: tested on most firmwares between 3.0 and 7.0.2, if you test on firmware outside this window, please report your findings. 
+supported firmware: tested on most firmwares between 3.0 and 7.1b5, if you test on firmware outside this window, please report your findings. 
